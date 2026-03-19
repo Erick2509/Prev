@@ -160,11 +160,11 @@ function draw(){
   ctx.drawImage(img,0,0);
 
   var W=C.width, H=C.height;
-
-  // Escala igual que imagen de referencia (~1270px)
   var sc = W / 1270;
+
   var fs = Math.round(36 * sc);
-  var lh = Math.round(fs * 1.48);
+  // Interlineado minimo: solo lo justo para que no se toquen las letras
+  var lh = Math.round(fs * 1.05);
   var px = Math.round(20 * sc);
   var py = Math.round(20 * sc);
 
@@ -172,14 +172,13 @@ function draw(){
   var addrLines = loc ? loc.lines : [];
   var allLines = [ts].concat(addrLines);
 
-  // Fuente exacta de la referencia: bold sans-serif condensada
-  ctx.font = 'bold ' + fs + 'px Arial, Helvetica, sans-serif';
+  // Fuente: bold 900 para maxima grosor como en la referencia
+  ctx.font = '900 ' + fs + 'px Arial Black, Arial, Helvetica, sans-serif';
   ctx.textBaseline = 'alphabetic';
 
-  // SOLO sombra negra - sin fondo, sin gradiente, sin stroke
-  // Igual que las fotos de celular de la referencia
-  ctx.shadowColor = 'rgba(0,0,0,0.85)';
-  ctx.shadowBlur   = Math.round(4 * sc);
+  // Sombra negra intensa para contraste
+  ctx.shadowColor   = 'rgba(0,0,0,0.95)';
+  ctx.shadowBlur    = Math.round(4 * sc);
   ctx.shadowOffsetX = Math.round(1.5 * sc);
   ctx.shadowOffsetY = Math.round(1.5 * sc);
   ctx.fillStyle = '#ffffff';
@@ -189,19 +188,15 @@ function draw(){
     ctx.fillText(allLines[i], px, y);
   }
 
-  // Reset sombra antes de dibujar el logo
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
 
-  // Logo - esquina superior derecha
   if(logo.complete && logo.naturalWidth > 0){
-    var lw = Math.round(W * 0.24);
-    var lhImg = Math.round(lw * (logo.naturalHeight / logo.naturalWidth));
-    var mr = Math.round(12 * sc);
-    var mt = Math.round(10 * sc);
-    ctx.drawImage(logo, W - lw - mr, mt, lw, lhImg);
+    var lw  = Math.round(W * 0.24);
+    var lhI = Math.round(lw * (logo.naturalHeight / logo.naturalWidth));
+    ctx.drawImage(logo, W - lw - Math.round(12*sc), Math.round(10*sc), lw, lhI);
   }
 }
 
