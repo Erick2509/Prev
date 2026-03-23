@@ -11,17 +11,33 @@ header{width:100%;background:#000;border-bottom:2px solid #FFD700;padding:14px 2
 .badge{background:#000;border:3px solid #FFD700;padding:5px 16px;font-size:1.4rem;font-weight:900;color:#FFD700;letter-spacing:3px}
 header p{font-size:.72rem;color:#555;letter-spacing:2px;text-transform:uppercase}
 main{width:100%;max-width:960px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:18px}
+
+#modeBox{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+#modeBox h3{font-size:.8rem;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+.mode-btns{display:flex;gap:10px;flex-wrap:wrap}
+.mbtn{flex:1;min-width:140px;padding:10px 14px;border:2px solid #2a2a2a;background:transparent;color:#888;font-weight:700;font-size:.8rem;letter-spacing:1px;cursor:pointer;border-radius:3px;transition:all .15s}
+.mbtn.active{border-color:#FFD700;color:#FFD700;background:rgba(255,215,0,.06)}
+
+#presetBox{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:16px 20px;display:none;flex-direction:column;gap:10px}
+#presetBox.on{display:flex}
+#presetBox h3{font-size:.78rem;color:#888;letter-spacing:2px;text-transform:uppercase}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preset-grid input{background:#0d0d0d;border:1px solid #333;color:#fff;padding:9px 12px;font-size:.82rem;border-radius:3px;font-family:monospace}
+.preset-grid input:focus{outline:none;border-color:#FFD700}
+.preset-grid input::placeholder{color:#444}
+.preset-full{grid-column:1/-1}
+
 #drop-zone{width:100%;border:2px dashed #2a2a2a;border-radius:4px;padding:52px 24px;text-align:center;cursor:pointer;background:#111;position:relative;transition:border-color .2s,background .2s}
 #drop-zone:hover,#drop-zone.over{border-color:#FFD700;background:#161616}
 #drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 #drop-zone .ic{font-size:2.6rem;display:block;margin-bottom:10px}
 #drop-zone h2{font-size:1.3rem;color:#FFD700;letter-spacing:2px;font-weight:700}
 #drop-zone small{color:#555;font-size:.78rem;margin-top:5px;display:block}
+
 #status{width:100%;background:#111;border-left:3px solid #FFD700;padding:11px 15px;font-size:.76rem;color:#aaa;display:none;line-height:1.6}
 #status.on{display:block}
 #status span{color:#FFD700}
 
-/* Panel de controles */
 #controls{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:16px 20px;display:none;gap:20px;align-items:center;flex-wrap:wrap}
 #controls.on{display:flex}
 #controls label{font-size:.78rem;color:#888;display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
@@ -32,7 +48,7 @@ input[type=range]{width:100%;accent-color:#FFD700;cursor:pointer}
 #wrap.on{display:flex}
 canvas{display:block;width:100%;max-width:900px;height:auto;border:1px solid #1a1a1a}
 .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-button{font-weight:700;font-size:.95rem;letter-spacing:2px;padding:11px 26px;border:none;cursor:pointer;border-radius:2px}
+button.dl,button.rst{font-weight:700;font-size:.95rem;letter-spacing:2px;padding:11px 26px;border:none;cursor:pointer;border-radius:2px}
 .dl{background:#FFD700;color:#000}
 .dl:hover{background:#ffe033}
 .rst{background:transparent;color:#FFD700;border:1px solid #FFD700}
@@ -50,24 +66,43 @@ footer{margin-top:auto;padding:18px;font-size:.62rem;color:#222;letter-spacing:1
   <p>Registro Fotografico con Geolocalizacion</p>
 </header>
 <main>
+
+  <div id="modeBox">
+    <h3>&#128205; Modo de Ubicacion</h3>
+    <div class="mode-btns">
+      <button class="mbtn active" id="btnGps" onclick="setMode('gps')">&#128225; GPS en tiempo real</button>
+      <button class="mbtn" id="btnPreset" onclick="setMode('preset')">&#9998; Ubicacion predeterminada</button>
+    </div>
+  </div>
+
+  <div id="presetBox">
+    <h3>Direccion predeterminada (editable)</h3>
+    <div class="preset-grid">
+      <input class="preset-full" type="text" id="pL1" value="5193 Avenida Javier Prado Este">
+      <input type="text" id="pL2" value="Camacho">
+      <input type="text" id="pL3" value="La Molina">
+      <input class="preset-full" type="text" id="pL4" value="Provincia de Lima">
+    </div>
+  </div>
+
   <div id="drop-zone">
     <input type="file" id="fi" accept="image/*">
     <span class="ic">&#128247;</span>
     <h2>SUBIR FOTOGRAFIA</h2>
     <small>Clic aqui o arrastra una imagen</small>
   </div>
+
   <div id="status"></div>
   <div id="live"><div class="dot"></div><span id="clk"></span></div>
 
-  <!-- Controles de tamanio -->
   <div id="controls">
     <label>
-      Tamano de letra &nbsp;<span class="val" id="fsVal">36</span>px
-      <input type="range" id="fsRange" min="16" max="80" value="36" step="1">
+      Tamano de letra &nbsp;<span class="val" id="fsVal">40</span>px
+      <input type="range" id="fsRange" min="16" max="120" value="40" step="1">
     </label>
     <label>
-      Espaciado entre lineas &nbsp;<span class="val" id="lhVal">1.05</span>
-      <input type="range" id="lhRange" min="100" max="160" value="105" step="1">
+      Espaciado entre lineas &nbsp;<span class="val" id="lhVal">1.00</span>
+      <input type="range" id="lhRange" min="100" max="160" value="100" step="1">
     </label>
   </div>
 
@@ -89,11 +124,44 @@ var live=document.getElementById('live'),clk=document.getElementById('clk');
 var controls=document.getElementById('controls');
 var fsRange=document.getElementById('fsRange'),fsVal=document.getElementById('fsVal');
 var lhRange=document.getElementById('lhRange'),lhVal=document.getElementById('lhVal');
+var presetBox=document.getElementById('presetBox');
 var img=null,loc=null,raf=null;
+var mode='gps';
 
-// Valores ajustables por el usuario
-var userFs=36;   // tamanio fuente base (se escala con imagen)
-var userLh=1.05; // interlineado
+var userFs=40;
+var userLh=1.00;
+
+function setMode(m){
+  mode=m;
+  document.getElementById('btnGps').className='mbtn'+(m==='gps'?' active':'');
+  document.getElementById('btnPreset').className='mbtn'+(m==='preset'?' active':'');
+  presetBox.className=m==='preset'?'on':'';
+  if(img){
+    if(m==='gps') getLoc();
+    else applyPreset();
+  }
+}
+
+function applyPreset(){
+  var l1=document.getElementById('pL1').value.trim();
+  var l2=document.getElementById('pL2').value.trim();
+  var l3=document.getElementById('pL3').value.trim();
+  var l4=document.getElementById('pL4').value.trim();
+  var lines=[];
+  if(l1)lines.push(l1);
+  if(l2)lines.push(l2);
+  if(l3)lines.push(l3);
+  if(l4)lines.push(l4);
+  loc={lines:lines};
+  st.className='on';
+  st.innerHTML='Ubicacion predeterminada: <span>'+lines.join(' | ')+'</span>';
+}
+
+['pL1','pL2','pL3','pL4'].forEach(function(id){
+  document.getElementById(id).addEventListener('input',function(){
+    if(mode==='preset'&&img) applyPreset();
+  });
+});
 
 fsRange.addEventListener('input',function(){
   userFs=parseInt(this.value);
@@ -126,7 +194,9 @@ function load(f){
       wrap.classList.add('on');
       live.classList.add('on');
       controls.classList.add('on');
-      getLoc();startRender();
+      if(mode==='gps') getLoc();
+      else applyPreset();
+      startRender();
     };
     i.src=ev.target.result;
   };
@@ -162,7 +232,7 @@ function getLoc(){
         if(l3)lines.push(l3);
         if(l4)lines.push(l4);
         loc={lines:lines};
-        st.innerHTML='<span>'+lines.join('<br>')+'</span>';
+        st.innerHTML='GPS: <span>'+lines.join(' | ')+'</span>';
       })
       .catch(function(){
         loc={lines:['Lat: '+lat.toFixed(6),'Lon: '+lon.toFixed(6)]};
@@ -197,40 +267,36 @@ function getTs(){
 function draw(){
   if(!img)return;
   ctx.drawImage(img,0,0);
-
   var W=C.width,H=C.height;
-  var sc = W / 1270;
+  var fs=userFs;
+  var lh=Math.round(fs*userLh);
+  var px=Math.round(W*0.016);
+  var py=Math.round(H*0.022);
 
-  // Fuente escalada segun imagen + ajuste del usuario
-  var fs = Math.round(userFs * sc);
-  var lh = Math.round(fs * userLh);
-  var px = Math.round(20 * sc);
-  var py = Math.round(20 * sc);
+  var ts=getTs();
+  var addrLines=loc?loc.lines:[];
+  var allLines=[ts].concat(addrLines);
 
-  var ts = getTs();
-  var addrLines = loc ? loc.lines : [];
-  var allLines = [ts].concat(addrLines);
-
-  ctx.font = '900 ' + fs + 'px Arial Black, Arial, Helvetica, sans-serif';
-  ctx.textBaseline = 'alphabetic';
-  ctx.shadowColor   = 'rgba(0,0,0,0.95)';
-  ctx.shadowBlur    = Math.round(4 * sc);
-  ctx.shadowOffsetX = Math.round(1.5 * sc);
-  ctx.shadowOffsetY = Math.round(1.5 * sc);
-  ctx.fillStyle = '#ffffff';
+  ctx.font='900 '+fs+'px Arial Black, Arial, Helvetica, sans-serif';
+  ctx.textBaseline='alphabetic';
+  ctx.shadowColor='rgba(0,0,0,0.95)';
+  ctx.shadowBlur=Math.round(fs*0.1);
+  ctx.shadowOffsetX=Math.round(fs*0.04);
+  ctx.shadowOffsetY=Math.round(fs*0.04);
+  ctx.fillStyle='#ffffff';
 
   for(var i=0;i<allLines.length;i++){
-    var y = H - py - (allLines.length-1-i) * lh;
-    ctx.fillText(allLines[i], px, y);
+    var y=H-py-(allLines.length-1-i)*lh;
+    ctx.fillText(allLines[i],px,y);
   }
 
   ctx.shadowColor='transparent';
   ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
 
-  if(logo.complete && logo.naturalWidth > 0){
-    var lw  = Math.round(W * 0.24);
-    var lhI = Math.round(lw * (logo.naturalHeight / logo.naturalWidth));
-    ctx.drawImage(logo, W-lw-Math.round(12*sc), Math.round(10*sc), lw, lhI);
+  if(logo.complete&&logo.naturalWidth>0){
+    var lw=Math.round(W*0.24);
+    var lhI=Math.round(lw*(logo.naturalHeight/logo.naturalWidth));
+    ctx.drawImage(logo,W-lw-Math.round(W*0.01),Math.round(H*0.01),lw,lhI);
   }
 }
 
