@@ -13,7 +13,7 @@ header p{font-size:.72rem;color:#555;letter-spacing:2px;text-transform:uppercase
 main{width:100%;max-width:960px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:18px}
 
 #modeBox{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
-#modeBox h3{font-size:.8rem;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+#modeBox h3{font-size:.8rem;color:#888;letter-spacing:2px;text-transform:uppercase}
 .mode-btns{display:flex;gap:10px;flex-wrap:wrap}
 .mbtn{flex:1;min-width:140px;padding:10px 14px;border:2px solid #2a2a2a;background:transparent;color:#888;font-weight:700;font-size:.8rem;letter-spacing:1px;cursor:pointer;border-radius:3px;transition:all .15s}
 .mbtn.active{border-color:#FFD700;color:#FFD700;background:rgba(255,215,0,.06)}
@@ -24,7 +24,6 @@ main{width:100%;max-width:960px;padding:28px 16px;display:flex;flex-direction:co
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .preset-grid input{background:#0d0d0d;border:1px solid #333;color:#fff;padding:9px 12px;font-size:.82rem;border-radius:3px;font-family:monospace}
 .preset-grid input:focus{outline:none;border-color:#FFD700}
-.preset-grid input::placeholder{color:#444}
 .preset-full{grid-column:1/-1}
 
 #drop-zone{width:100%;border:2px dashed #2a2a2a;border-radius:4px;padding:52px 24px;text-align:center;cursor:pointer;background:#111;position:relative;transition:border-color .2s,background .2s}
@@ -38,11 +37,12 @@ main{width:100%;max-width:960px;padding:28px 16px;display:flex;flex-direction:co
 #status.on{display:block}
 #status span{color:#FFD700}
 
-#controls{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:16px 20px;display:none;gap:20px;align-items:center;flex-wrap:wrap}
+#controls{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:16px 20px;display:none;flex-direction:column;gap:16px}
 #controls.on{display:flex}
-#controls label{font-size:.78rem;color:#888;display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
-#controls span.val{color:#FFD700;font-size:.9rem;font-weight:700}
-input[type=range]{width:100%;accent-color:#FFD700;cursor:pointer}
+.ctrl-row{display:flex;flex-direction:column;gap:6px}
+.ctrl-row label{font-size:.78rem;color:#888;display:flex;justify-content:space-between}
+.ctrl-row label span{color:#FFD700;font-weight:700;font-size:.9rem}
+input[type=range]{width:100%;accent-color:#FFD700;cursor:pointer;height:4px}
 
 #wrap{width:100%;display:none;flex-direction:column;align-items:center;gap:14px}
 #wrap.on{display:flex}
@@ -57,6 +57,7 @@ button.dl,button.rst{font-weight:700;font-size:.95rem;letter-spacing:2px;padding
 #live.on{display:flex}
 .dot{width:7px;height:7px;border-radius:50%;background:#4CAF50;animation:blink 1.2s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+#imginfo{font-size:.7rem;color:#444;text-align:center}
 footer{margin-top:auto;padding:18px;font-size:.62rem;color:#222;letter-spacing:1px}
 </style>
 </head>
@@ -94,16 +95,17 @@ footer{margin-top:auto;padding:18px;font-size:.62rem;color:#222;letter-spacing:1
 
   <div id="status"></div>
   <div id="live"><div class="dot"></div><span id="clk"></span></div>
+  <div id="imginfo"></div>
 
   <div id="controls">
-    <label>
-      Tamano de letra &nbsp;<span class="val" id="fsVal">40</span>px
-      <input type="range" id="fsRange" min="16" max="120" value="40" step="1">
-    </label>
-    <label>
-      Espaciado entre lineas &nbsp;<span class="val" id="lhVal">1.00</span>
+    <div class="ctrl-row">
+      <label>Tamano de letra <span id="fsVal">3.0</span>%</label>
+      <input type="range" id="fsRange" min="1" max="8" value="3" step="0.1">
+    </div>
+    <div class="ctrl-row">
+      <label>Espaciado entre lineas <span id="lhVal">1.00</span></label>
       <input type="range" id="lhRange" min="100" max="160" value="100" step="1">
-    </label>
+    </div>
   </div>
 
   <div id="wrap">
@@ -125,10 +127,14 @@ var controls=document.getElementById('controls');
 var fsRange=document.getElementById('fsRange'),fsVal=document.getElementById('fsVal');
 var lhRange=document.getElementById('lhRange'),lhVal=document.getElementById('lhVal');
 var presetBox=document.getElementById('presetBox');
+var imginfo=document.getElementById('imginfo');
 var img=null,loc=null,raf=null;
 var mode='gps';
 
-var userFs=40;
+// Limite maximo de pixels para el canvas (evita lag con fotos enormes)
+var MAX_PX = 4000; // ancho maximo en pixeles del canvas
+
+var userFsPct=3.0;
 var userLh=1.00;
 
 function setMode(m){
@@ -136,10 +142,7 @@ function setMode(m){
   document.getElementById('btnGps').className='mbtn'+(m==='gps'?' active':'');
   document.getElementById('btnPreset').className='mbtn'+(m==='preset'?' active':'');
   presetBox.className=m==='preset'?'on':'';
-  if(img){
-    if(m==='gps') getLoc();
-    else applyPreset();
-  }
+  if(img){ if(m==='gps') getLoc(); else applyPreset(); }
 }
 
 function applyPreset(){
@@ -154,7 +157,7 @@ function applyPreset(){
   if(l4)lines.push(l4);
   loc={lines:lines};
   st.className='on';
-  st.innerHTML='Ubicacion predeterminada: <span>'+lines.join(' | ')+'</span>';
+  st.innerHTML='Ubicacion: <span>'+lines.join(' | ')+'</span>';
 }
 
 ['pL1','pL2','pL3','pL4'].forEach(function(id){
@@ -164,8 +167,8 @@ function applyPreset(){
 });
 
 fsRange.addEventListener('input',function(){
-  userFs=parseInt(this.value);
-  fsVal.textContent=userFs;
+  userFsPct=parseFloat(this.value);
+  fsVal.textContent=userFsPct.toFixed(1);
 });
 lhRange.addEventListener('input',function(){
   userLh=parseInt(this.value)/100;
@@ -189,13 +192,37 @@ function load(f){
   r.onload=function(ev){
     var i=new Image();
     i.onload=function(){
-      img=i;C.width=i.width;C.height=i.height;
+      var origW=i.naturalWidth, origH=i.naturalHeight;
+
+      // Si la imagen es demasiado grande, escalar antes de poner en canvas
+      var scale=1;
+      if(origW>MAX_PX){
+        scale=MAX_PX/origW;
+      }
+      var canvW=Math.round(origW*scale);
+      var canvH=Math.round(origH*scale);
+
+      C.width=canvW;
+      C.height=canvH;
+
+      // Dibujar imagen escalada en canvas offscreen para guardarla
+      img=i;
+      img._w=canvW;
+      img._h=canvH;
+
+      // Info para el usuario
+      var mb=(f.size/1024/1024).toFixed(2);
+      if(scale<1){
+        imginfo.textContent='Foto: '+origW+'x'+origH+'px ('+mb+' MB) — Optimizada a '+canvW+'x'+canvH+'px para mejor rendimiento';
+      } else {
+        imginfo.textContent='Foto: '+origW+'x'+origH+'px ('+mb+' MB)';
+      }
+
       dz.style.display='none';
       wrap.classList.add('on');
       live.classList.add('on');
       controls.classList.add('on');
-      if(mode==='gps') getLoc();
-      else applyPreset();
+      if(mode==='gps') getLoc(); else applyPreset();
       startRender();
     };
     i.src=ev.target.result;
@@ -266,12 +293,15 @@ function getTs(){
 
 function draw(){
   if(!img)return;
-  ctx.drawImage(img,0,0);
-  var W=C.width,H=C.height;
-  var fs=userFs;
+  var W=C.width, H=C.height;
+
+  // Dibujar imagen (escalada si fue necesario)
+  ctx.drawImage(img, 0, 0, W, H);
+
+  var fs=Math.round(W*userFsPct/100);
   var lh=Math.round(fs*userLh);
   var px=Math.round(W*0.016);
-  var py=Math.round(H*0.022);
+  var py=Math.round(H*0.025);
 
   var ts=getTs();
   var addrLines=loc?loc.lines:[];
@@ -280,9 +310,9 @@ function draw(){
   ctx.font='900 '+fs+'px Arial Black, Arial, Helvetica, sans-serif';
   ctx.textBaseline='alphabetic';
   ctx.shadowColor='rgba(0,0,0,0.95)';
-  ctx.shadowBlur=Math.round(fs*0.1);
-  ctx.shadowOffsetX=Math.round(fs*0.04);
-  ctx.shadowOffsetY=Math.round(fs*0.04);
+  ctx.shadowBlur=Math.round(fs*0.08);
+  ctx.shadowOffsetX=Math.round(fs*0.03);
+  ctx.shadowOffsetY=Math.round(fs*0.03);
   ctx.fillStyle='#ffffff';
 
   for(var i=0;i<allLines.length;i++){
@@ -296,7 +326,7 @@ function draw(){
   if(logo.complete&&logo.naturalWidth>0){
     var lw=Math.round(W*0.24);
     var lhI=Math.round(lw*(logo.naturalHeight/logo.naturalWidth));
-    ctx.drawImage(logo,W-lw-Math.round(W*0.01),Math.round(H*0.01),lw,lhI);
+    ctx.drawImage(logo,W-lw-Math.round(W*0.01),Math.round(H*0.012),lw,lhI);
   }
 }
 
@@ -317,6 +347,7 @@ function reset(){
   wrap.classList.remove('on');
   live.classList.remove('on');
   controls.classList.remove('on');
+  imginfo.textContent='';
   st.className='';dz.style.display='';
 }
 </script>
