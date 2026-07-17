@@ -329,17 +329,50 @@ function draw(){
     ctx.drawImage(logo,W-lw-Math.round(W*0.01),Math.round(H*0.012),lw,lhI);
   }
 }
-
-function dl(){
+  async function dl(){
   if(raf)cancelAnimationFrame(raf);
   draw();
-  var a=document.createElement('a');
+
   var n=new Date();
-  a.download='PREVENCION_'+n.getFullYear()+pad2(n.getMonth()+1)+pad2(n.getDate())+'_'+pad2(n.getHours())+pad2(n.getMinutes())+pad2(n.getSeconds())+'.jpg';
-  a.href=C.toDataURL('image/jpeg',0.97);
-  a.click();
-  startRender();
+  var filename='PREVENCION_'+n.getFullYear()+pad2(n.getMonth()+1)+pad2(n.getDate())+'_'+pad2(n.getHours())+pad2(n.getMinutes())+pad2(n.getSeconds())+'.jpg';
+
+  C.toBlob(async function(blob){
+    if(!blob){ startRender(); return; }
+
+    var file=new File([blob], filename, {type:'image/jpeg'});
+    var canShareFile = navigator.canShare && navigator.canShare({files:[file]});
+
+    // iOS / Safari: hoja de compartir nativa con "Guardar imagen"
+    if(canShareFile){
+      try{
+        await navigator.share({files:[file], title:filename});
+        startRender();
+        return;
+      }catch(e){
+        // usuario canceló -> seguimos al fallback
+      }
+    }
+
+    var url=URL.createObjectURL(blob);
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if(isIOS){
+      window.open(url,'_blank');
+      alert('Mantén presionada la imagen y elige "Guardar imagen" para guardarla en tu galería.');
+    } else {
+      var a=document.createElement('a');
+      a.download=filename;
+      a.href=url;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    setTimeout(function(){URL.revokeObjectURL(url);},10000);
+    startRender();
+  },'image/jpeg',0.97);
 }
+
 
 function reset(){
   if(raf)cancelAnimationFrame(raf);
