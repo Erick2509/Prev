@@ -1,0 +1,27 @@
+PREVENCIÓN — Versión mejorada 5
+
+INSTALACIÓN
+1. Publica todos los archivos juntos en un servidor HTTPS (no abrir index.html como file://).
+2. Abre la web con Internet una vez y espera a que cargue completamente.
+3. Android Chrome: menú ⋮ > Añadir a pantalla de inicio / Instalar aplicación.
+4. Cierra la app, desconecta Wi-Fi y datos y vuelve a abrirla para comprobar modo sin conexión.
+5. Cada actualización necesita una primera visita con Internet para descargar los nuevos archivos.
+
+MEJORAS
+- Botones independientes para galería y cámara; selector compatible con más Android.
+- Alternativa a createImageBitmap mediante Image.onload; reintento sin Web Worker.
+- Menos memoria en dispositivos con RAM reducida y reducción adaptativa de imagen.
+- Corregida la pérdida de contenido al reducir la imagen en el último paso.
+- Caché para el uso sin Internet, sin CDNs ni servicios de terceros.
+- Marca de agua ajustada a las dos referencias: logo negro/amarillo arriba a la derecha y fecha/dirección blancas abajo a la izquierda.
+- Formato de fecha y hora: día, mes abreviado en español, año y hora de 24 horas con segundos.
+- Tamaños y posiciones proporcionales al lado menor para fotos horizontales y verticales.
+- Botones y mensajes simplificados, con opción para compartir JPG.
+
+LIMITACIONES IMPORTANTES
+- HEIC/HEIF/AVIF depende del soporte de decodificación del navegador: si falla, exportar JPG/PNG.
+- No es posible garantizar funcionamiento en todos los Android/WebViews sin probar dispositivos concretos.
+- La primera visita y cada actualización requieren Internet. El modo offline depende de instalación HTTPS y caché correcta.
+- No sustituye almacenamiento en servidor ni guarda un historial de fotografías: se descarga/compartirá cada resultado.
+- Las fotos permanecen locales. La dirección impresa es fija y NO acredita ubicación GPS.
+- No garantizar compatibilidad con cámaras y navegadores no ensayados: probar en Android Chrome y Samsung Internet.
